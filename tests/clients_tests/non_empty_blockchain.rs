@@ -1,6 +1,6 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
 use monero::{Address, Amount, Network};
 use monero_rpc::{BlockHash, BlockHeaderResponse, GetBlockHeaderSelector};
+use time::macros::datetime;
 
 use super::helpers;
 
@@ -76,7 +76,7 @@ pub async fn run() {
         reward: Amount::from_pico(35180379334199),
         // this is not used inside the test functions below, since its value depend on when the
         // test was run, so use any date in this field since it is insignificant for testing.
-        timestamp: DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc),
+        timestamp: datetime!(2020 - 01 - 01 0:00).assume_utc(),
     };
     helpers::regtest::get_last_block_header_assert_block_header(
         &regtest,

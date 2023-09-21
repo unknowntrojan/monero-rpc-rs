@@ -1,12 +1,12 @@
 use std::ops::RangeInclusive;
 
-use chrono::{DateTime, NaiveDate, Utc};
 use monero::{Address, Network};
 use monero_rpc::{
     BlockHash, BlockHeaderResponse, BlockTemplate, GenerateBlocksResponse, HashString,
     RegtestDaemonJsonRpcClient,
 };
 use serde::Deserialize;
+use time::macros::datetime;
 
 pub async fn get_block_count_assert_height(
     regtest: &RegtestDaemonJsonRpcClient,
@@ -240,11 +240,7 @@ fn test_get_block_header_assert_block_header(
     if block_header.height == 0 {
         assert_eq!(block_header.timestamp, expected_block_header.timestamp);
     } else {
-        let start_2022_date = NaiveDate::from_ymd_opt(2022, 1, 1)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap();
-        let start_2022_date = DateTime::<Utc>::from_utc(start_2022_date, Utc);
+        let start_2022_date = datetime!(2020 - 01 - 01 0:00).assume_utc();
         assert!(block_header.timestamp >= start_2022_date);
     }
 

@@ -16,7 +16,6 @@
 #![allow(clippy::incorrect_clone_impl_on_copy_type)]
 
 use crate::util::*;
-use chrono::prelude::*;
 use monero::{
     cryptonote::{hash::Hash as CryptoNoteHash, subaddress},
     util::{
@@ -27,6 +26,7 @@ use monero::{
 };
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{collections::HashMap, num::NonZeroU64};
+use time::OffsetDateTime;
 
 macro_rules! hash_type {
     ($name:ident, $len:expr) => {
@@ -86,8 +86,8 @@ pub(crate) struct BlockHeaderResponseR {
     pub prev_hash: HashString<BlockHash>,
     #[serde(with = "amount::serde::as_pico")]
     pub reward: Amount,
-    #[serde(with = "chrono::serde::ts_seconds")]
-    pub timestamp: DateTime<Utc>,
+    #[serde(with = "time::serde::timestamp")]
+    pub timestamp: OffsetDateTime,
 }
 
 impl From<BlockHeaderResponseR> for BlockHeaderResponse {
@@ -126,7 +126,8 @@ pub struct BlockHeaderResponse {
     pub prev_hash: BlockHash,
     #[serde(with = "amount::serde::as_pico")]
     pub reward: Amount,
-    pub timestamp: DateTime<Utc>,
+    #[serde(with = "time::serde::timestamp")]
+    pub timestamp: OffsetDateTime,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -404,6 +405,21 @@ pub struct GetAccountsData {
     pub total_unlocked_balance: Amount,
 }
 
+/// Return type of wallet `create_account`.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CreateAccountData {
+    pub account_index: u32,
+    pub address: Address,
+}
+
+/// Return type of wallet `get_account_tags`.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct GetAccountTagsData {
+    pub tag: String,
+    pub label: String,
+    pub accounts: Vec<u32>,
+}
+
 /// Monero uses two type of private key in its cryptographic system: (1) a view key, and (2) a
 /// spend key.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -518,8 +534,8 @@ pub struct GotTransfer {
     /// Estimation of the confirmations needed for the transaction to be included in a block.
     pub suggested_confirmations_threshold: u64,
     /// POSIX timestamp for when this transfer was first confirmed in a block (or timestamp submission if not mined yet).
-    #[serde(with = "chrono::serde::ts_seconds")]
-    pub timestamp: DateTime<Utc>,
+    #[serde(with = "time::serde::timestamp")]
+    pub timestamp: OffsetDateTime,
     /// Transaction ID for this transfer.
     pub txid: HashString<Vec<u8>>,
     /// Type of transfer.
@@ -571,6 +587,8 @@ mod tests {
 
     #[test]
     fn block_header_response_from_block_header_response_r() {
+        let timestamp = OffsetDateTime::now_utc();
+
         let bhrr = BlockHeaderResponseR {
             block_size: 123,
             depth: 1234,
@@ -584,10 +602,7 @@ mod tests {
             orphan_status: true,
             prev_hash: HashString(BlockHash::repeat_byte(12)),
             reward: Amount::from_pico(12),
-            timestamp: DateTime::<Utc>::from_utc(
-                NaiveDateTime::from_timestamp_opt(61, 0).unwrap(),
-                Utc,
-            ),
+            timestamp,
         };
 
         let expected_bhr = BlockHeaderResponse {
@@ -603,10 +618,7 @@ mod tests {
             orphan_status: true,
             prev_hash: BlockHash::repeat_byte(12),
             reward: Amount::from_pico(12),
-            timestamp: DateTime::<Utc>::from_utc(
-                NaiveDateTime::from_timestamp_opt(61, 0).unwrap(),
-                Utc,
-            ),
+            timestamp,
         };
 
         assert_eq!(BlockHeaderResponse::from(bhrr), expected_bhr);

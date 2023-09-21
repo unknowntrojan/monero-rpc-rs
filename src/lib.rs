@@ -847,6 +847,75 @@ impl WalletClient {
             .await
     }
 
+    /// Create an account for a wallet.
+    pub async fn create_account(&self, label: Option<String>) -> anyhow::Result<CreateAccountData> {
+        let params = empty().chain(label.map(|v| ("label", v.into())));
+
+        self.inner
+            .request("create_account", RpcParams::map(params))
+            .await
+    }
+
+    /// Label an account for a wallet.
+    pub async fn label_account(&self, account_index: u32, label: String) -> anyhow::Result<()> {
+        let params = empty()
+            .chain(Some(("label", label.into())))
+            .chain(Some(("account_index", account_index.into())));
+
+        self.inner
+            .request("label_account", RpcParams::map(params))
+            .await
+    }
+
+    /// Tag accounts for a wallet.
+    pub async fn tag_accounts(&self, accounts: Vec<u32>, tag: String) -> anyhow::Result<()> {
+        let params = empty()
+            .chain(Some(("tag", tag.into())))
+            .chain(Some(("accounts", accounts.into())));
+
+        self.inner
+            .request("tag_accounts", RpcParams::map(params))
+            .await
+    }
+
+    /// Untag accounts for a wallet.
+    pub async fn untag_accounts(&self, accounts: Vec<u32>) -> anyhow::Result<()> {
+        let params = empty().chain(Some(("accounts", accounts.into())));
+
+        self.inner
+            .request("untag_accounts", RpcParams::map(params))
+            .await
+    }
+
+    /// Set description for an account tag.
+    pub async fn set_account_tag_description(
+        &self,
+        tag: String,
+        description: String,
+    ) -> anyhow::Result<()> {
+        let params = empty()
+            .chain(Some(("tag", tag.into())))
+            .chain(Some(("description", description.into())));
+
+        self.inner
+            .request("set_account_tag_description", RpcParams::map(params))
+            .await
+    }
+
+    /// Get a list of user-defined account tags.
+    pub async fn get_account_tags(&self) -> anyhow::Result<Vec<GetAccountTagsData>> {
+        #[derive(Deserialize)]
+        struct Rsp {
+            #[serde(default)]
+            pub account_tags: Vec<GetAccountTagsData>,
+        }
+
+        self.inner
+            .request::<Rsp>("get_account_tags", RpcParams::map(empty()))
+            .await
+            .map(|rsp| rsp.account_tags)
+    }
+
     /// Get a list of incoming payments using a given payment id.
     pub async fn get_payments(&self, payment_id: PaymentId) -> anyhow::Result<Vec<Payment>> {
         #[derive(Deserialize)]

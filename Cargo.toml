@@ -1,36 +1,37 @@
 [package]
 name = "monero-rpc"
-version = "0.4.0"
+version = "0.3.2"
 authors = ["Artem Vorotnikov <artem@vorotnikov.me>", "Monero Rust Contributors"]
 edition = "2021"
 exclude = ["/test"]
 keywords = ["asynchronous", "net", "monero", "rpc"]
 license = "Apache-2.0"
 repository = "https://github.com/monero-rs/monero-rpc-rs"
-rust-version = "1.63.0"
+rust-version = "1.57"
 description = "RPC client for Monero daemon and wallet"
 
 [dependencies]
 anyhow = "1"
-chrono = { version = "0.4", default-features = false, features = ["serde"] }
-diqwest = { version = "1.1", optional = true }
+# chrono       = { version = "0.4", default-features = false, features = ["serde"] }
+time = { version = "0.3.28", features = ["serde", "macros"] }
+diqwest = { version = "1.2", features = ["rustls-tls"], optional = true }
 fixed-hash = "0.8"
 hex = "0.4"
 http = "0.2"
 jsonrpc-core = "18"
 monero = { version = "0.19", features = ["serde"] }
-reqwest = { version = "0.11", features = ["json", "socks"] }
+reqwest = { version = "0.11", features = ["json", "socks", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
-uuid = { version = "1.1", features = ["v4"] }
+uuid = { version = "1.4", features = ["v4"] }
 
 [dev-dependencies]
 # Async
 rand = "0.8.4"
 rustc-hex = "2.1"
 serde_test = "1.0"
-tokio = { version = "1.12.0", features = ["full"] }
+tokio = { version = "1.32.0", features = ["full"] }
 
 [features]
 rpc_authentication = ["diqwest"]
